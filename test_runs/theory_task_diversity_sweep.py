@@ -15,7 +15,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 THEORY_COMMON = REPO_ROOT / "theory_runs" / "Linear" / "Fig2_Context_Length"
 sys.path.insert(0, str(THEORY_COMMON))
 
-from common import gen_err_analytical_NEW, learn_Gamma_fast_NEW  # noqa: E402
+from common import gen_err_analytical_NEW, learn_Gamma_fast_NEW  
 
 
 def finite_dmmse_error(

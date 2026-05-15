@@ -33,15 +33,19 @@ Compares asymptotic theory and finite-dimensional simulations for ICL andin-dist
 
 Studies how performance changes with context length. The figure compares theory and simulations for both ICL and IDG errors. _The code here will involve simulating the reduced linear attention model._
 
-#### Figure 3: Memorization-to-ICL Transition
+#### Figure 3: Nonmonotonicity ranges of ICL error.
+
+A numerical plot purely focusing on the theory curves. 
+
+#### Figure 4: Memorization-to-ICL Transition
 
 Shows the transition controlled by pretraining task diversity. _The code here will involve simulating the reduced linear attention model and dMMSE estimator._
 
-#### Figure 4: Double Descent in Nonlinear Transformers
+#### Figure 5: Double Descent in Nonlinear Transformers
 
 Tests whether the sample-complexity scaling and double descent predicted by the linear theory also appear in full nonlinear Transformer models. _The code here involves training various transformer architectures, plotting their final test losses, as well as numerically determining the location of interpolation threshhold._ 
 
-#### Figure 5: Task-Diversity Transition in Nonlinear Transformers
+#### Figure 6: Task-Diversity Transition in Nonlinear Transformers
 
 Tests whether full nonlinear Transformers maintain both the task diversity scaling and phase transition predicted by the theory. _The code here involves training various transformer architectures and plotting their final test losses, as well as numerically evaluating the dMMSE estimator._ 
 
