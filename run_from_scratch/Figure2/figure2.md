@@ -8,6 +8,7 @@ To generate the data used for panel A of figure 1 (nonmonotonicity plot of IDG e
 > `d = 100`
 > `rho = 0.5`
 > `lam = 0.000001`
+
 Note that only the IDG values from these runs will be used for panel A. 
 
 To generate the data used for panel B, run `run_errors_from_data.py` for the follow sweeps of values
@@ -18,16 +19,18 @@ To generate the data used for panel B, run `run_errors_from_data.py` for the fol
 > `d = 100`
 > `rho = 0.1`
 > `lam = 0.000001`
+
 Only the ICL values will be useful for panel B.
 
 To generate the data used for panel C, run `run_errors_from_data.py` for the follow sweeps of values
 
-> `alphas = [2.35, 5.5, 9.62, 22.7, 100, 1000]
-> `kappas = [0.25, 0.75, 1, 1.1, 2]
-> `tau = 20
-> `d = 100
-> `rho = 0.5
-> `lam = 0.000001
+> `alphas = [2.35, 5.5, 9.62, 22.7, 100, 1000]`
+> `kappas = [0.25, 0.75, 1, 1.1, 2]`
+> `tau = 20`
+> `d = 100`
+> `rho = 0.5`
+> `lam = 0.000001`
+
 Only the ICL values will be useful for panel C.
 
 `run_errors_from_data.py` can be called by 
