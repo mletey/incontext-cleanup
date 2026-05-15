@@ -2,6 +2,7 @@
 
 This repository is our code used to create the figures for our paper
 > "Asymptotic theory of in-context learning by linear attention"
+> 
 > _Yue M. Lu, Mary I. Letey, Jacob A. Zavatone-Veth, Anindita Maiti, and Cengiz
 Pehlevan_
 
