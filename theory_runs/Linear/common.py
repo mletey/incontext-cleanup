@@ -1,13 +1,50 @@
 import numpy as np
+from scipy.optimize import fsolve
+
+# CALLING FUNCTION
+def errors_from_DATA(d, alpha, kappa, tau, rho, lam, numavg):
+    sigma_noise = np.sqrt(rho)
+    if kappa > 0:
+        K = np.int64(kappa * d)
+        rp = np.int64(np.round(tau * d**2 / K))
+        n = rp * K
+    else:
+        K = np.int64(tau * d**2)
+        rp = 1
+        n = rp * K
+    icl_dummy = []; idg_dummy = [];
+    for _ in range(numavg):
+        B = np.random.randn(K, d)
+        norms = np.linalg.norm(B, axis=1)
+        B = B / norms[:, np.newaxis] * np.sqrt(d)
+        beta = np.repeat(B[np.newaxis, :, :], rp, axis=0).reshape(n, d)
+
+        tau_max = 3
+        Gamma = learn_Gamma_fast_NEW(beta, alpha, sigma_noise, lam, tau_max)
+        icl_dummy.append(gen_err_analytical_NEW(Gamma, alpha, np.zeros(d),  np.eye(d), (sigma_noise)**2))
+        idg_dummy.append(gen_err_analytical_NEW(Gamma, alpha, np.mean(B,axis=0), (B.T @ B)/K, (sigma_noise)**2))
+    
+    icl_dummy = np.array(icl_dummy); idg_dummy = np.array(idg_dummy)
+    return np.mean(icl_dummy), np.std(icl_dummy), np.mean(idg_dummy), np.std(idg_dummy)
 
 # STIELJIES TRANSFORM OF WISHART MATRICES
 # COMPUTES m^* = M_k(x) NECESSARY FOR e^ICL, e^IDG DETERMINISTIC FORMULAS
 def M_kappa(x, kappa):
     return 2 / ( (x + 1 - 1/kappa) + np.sqrt((x + 1 - 1/kappa)**2 + 4*x/kappa) )
+def S_Wishart(x, sigma_beta, nu):
+    """
+    This funciton computes the Stieltjes transform of the Wishart distribution.
+    """
+    return 2/sigma_beta**2 / ((x/sigma_beta**2 + 1 - 1/nu) + np.sqrt((x/sigma_beta**2 + 1 - 1/nu)**2 + 4 * x/sigma_beta**2/nu))
+def S_Wishart_derivative(x, sigma_beta, nu):
+    """
+    This funciton computes the derivative of the Stieltjes transform of the Wishart distribution.
+    """
+    s = S_Wishart(x, sigma_beta, nu)
+    return -1/2 * s**2 * (1 + (x/sigma_beta**2 + 1 + 1/nu)/np.sqrt((x/sigma_beta**2 + 1 - 1/nu)**2 + 4 * x/sigma_beta**2/nu))
 
-# RIDGELESS FORMULA
-# IMPLEMENTS RESULT 1
-def e_ICL_theory(tau, alpha, rho, kappa):
+# RIDGELESS FORMULAS
+def ridgeless_icl(alpha, kappa, tau, rho):
     x_star = (1 + rho) / alpha
     m_star = M_kappa(x_star, kappa)
     mu_star = x_star * M_kappa(x_star, kappa/tau)
@@ -23,6 +60,42 @@ def e_ICL_theory(tau, alpha, rho, kappa):
         result = term1 + term2 + term3
 
     return result
+
+def ridgeless_idg(alpha, kappa, tau, rho):
+  Xstar = (1 + rho)/alpha
+  mstar = 2/(Xstar + 1 - 1/kappa + np.sqrt(4*Xstar/kappa + (Xstar + 1 - 1/kappa)**2))
+  mustar = 2*Xstar/(Xstar + 1 - tau/kappa + np.sqrt(4*Xstar*tau/kappa + (Xstar + 1 - tau/kappa)**2))
+
+  answer = 0;
+  if tau < 1:
+    eps = (1-tau)*Xstar/(tau*mustar)
+    c = 1/(1 - kappa/(1+kappa*eps/(1-tau))**2)
+    answer = (Xstar + eps)**2/eps + (rho+Xstar-2*Xstar*(1-tau)*(Xstar/eps + 1))/(1-tau-c*(1-tau)**2)
+  else:
+    answer = (rho + Xstar*(1-Xstar*mstar))/(tau-1)
+  return tau*answer
+
+# RIDGE FORMULA
+def self_consistency(eps, x, tau, kappa, ridge):
+    return 1 - tau + tau*ridge/eps - eps*S_Wishart(eps+x,1,kappa)
+def ridge_icl(alpha, kappa, tau, rho, ridge):
+  initial_guesses = np.linspace(0.0001, 10, 100)  # Adjust this range based on your specific problem
+  positive_solutions = []
+  for guess in initial_guesses:
+    solution = fsolve(self_consistency, guess, args=((1+rho)/alpha, tau, kappa, ridge))
+    if solution > 0 and solution not in positive_solutions:
+        positive_solutions.append(solution[0])
+  positive_solutions = np.unique(np.round(positive_solutions, 6))  # Remove duplicates and round for precision
+
+  eps = positive_solutions[0]
+  #print(tau, eps)
+  nu = (1+rho)/alpha + eps
+
+  c_e = (rho + nu - nu**2*S_Wishart(nu,1,kappa) - eps*(1 - 2*nu*S_Wishart(nu,1,kappa) - nu**2*S_Wishart_derivative(nu,1,kappa)))/(1 - 2*eps*S_Wishart(nu,1,kappa) - eps**2*S_Wishart_derivative(nu,1,kappa) - tau)
+  #print((1 - 2*eps*S_Wishart(nu,1,kappa) - eps**2*S_Wishart_derivative(nu,1,kappa) - tau))
+
+  ans = ((1+rho)/alpha + 1)*(1 - 2*nu*S_Wishart(nu,1,kappa) - nu**2*S_Wishart_derivative(nu,1,kappa) - c_e*(S_Wishart(nu,1,kappa) + eps*S_Wishart_derivative(nu,1,kappa))) - 2*(1-nu*S_Wishart(nu,1,kappa)) + 1 + rho;
+  return ans
 
 def draw_pretraining_data(n, d, l, k, rho):
     x = np.random.randn(n, l+1, d) / np.sqrt(d)
@@ -92,7 +165,6 @@ def monte_carlo_test_error(Gamma_star, d, l, n_test, rho):
     # Calculate mean squared error
     mse = np.mean((y_pred - y_test[:, l])**2)
     return mse
-
 
 def Householder(beta, x):
     s = np.sign(beta[0])
