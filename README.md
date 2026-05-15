@@ -47,15 +47,64 @@ Tests whether full nonlinear Transformers maintain both the task diversity scali
 
 ## Repository Organisation
 
-theory runs code base
-transformer code base
-test runs (gives some cpu-runnable example code)
-easy runs (using prepopulated data)
-run-from-scratch scripts
+- `theory_runs/`: Reduced linear-attention theory and simulation code. This computes $\Gamma^*$ from sampled data numerically and evaluates the reduced-linear attention MSE loss on these parameters, for both the ICL and IDG distribution. This folder also includes the finite-task Bayes estimator (dMMSE) simulation code used for the task-diversity comparisons.
+- `transformer_codebase/`: Transformer model, data, and training code.
+- `test_runs/`: small CPU tests runs. These are intentionally low-dimensional
+  (`d=5`) checks over task diversity and are meant to provide an easy proof-of-concept run for the reduced model and the transformers. 
+- `easy_runs/`: existing plotting/aggregation scripts plus prepopulated
+  processed data from our previous runs.
+- `run_from_scratch/`: reserved for full reproduction scripts. 
+
+To run the quick-and-easy tests, use
+
+```bash
+bash test_runs/run_theory_task_diversity_cpu.sh
+bash test_runs/run_transformer_task_diversity_cpu.sh
+bash test_runs/run_all_cpu_smoke_tests.sh
+```
+
+The test scripts write CSV outputs under `test_runs/outputs/`, which is ignored
+by git.
 
 ## Environment
 
-We provide both a conda environment file and pip requirements files. It is best to run this on a GPU node, so allocate that first.
+We provide both a conda environment file and pip requirements files. If `conda
+env create` is killed while collecting package metadata, use the pip/virtualenv
+path below. That usually means the conda solver ran out of memory on a
+constrained login node, not that the experiment code is broken.
+
+### Recommended Cluster Setup
+
+This path avoids the conda solver and is usually the most reliable on clusters:
+
+```bash
+cd incontext-cleanup
+
+# If your cluster uses environment modules, load Python first, e.g.
+# module load python/3.10.12-fasrc01
+
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements-cuda12.txt
+```
+
+For CPU-only local development or quick smoke tests, use:
+
+```bash
+python -m pip install -r requirements-cpu.txt
+```
+
+For CUDA 13 systems with a sufficiently recent NVIDIA driver, use:
+
+```bash
+python -m pip install -r requirements-cuda13.txt
+```
+
+### Conda Setup
+
+If conda works on your machine, you can instead create and activate the
+environment from `environment.yml`:
 
 ```bash
 conda env create -f environment.yml
@@ -75,7 +124,8 @@ After activating the environment, double check everything's actually been import
 python -c "import numpy, scipy, matplotlib, seaborn, tqdm, jax, flax, optax; print('imports ok')"
 ```
 
-For GPU runs, which we will use for the the nonlinear Transformer figures, request a GPU node to check JAX.
+For GPU runs, which we will use for the nonlinear Transformer figures, request
+a GPU node to check JAX.
 
 ```bash
 python -c "import jax; print(jax.devices())"
@@ -83,6 +133,14 @@ python -c "import jax; print(jax.devices())"
 
 The output should include a CUDA device. If it only
 shows `CpuDevice`, then JAX installed but is not using the GPU. 
+
+The default GPU setup uses `jax[cuda12]`, which requires an NVIDIA driver
+version of at least 525. The CUDA 13 setup uses `jax[cuda13]`, which requires
+driver version at least 580. On clusters, create the environment where internet
+access is available, then run the JAX device check on an allocated GPU node.
+Avoid loading old CUDA or cuDNN modules unless necessary, since the JAX CUDA
+wheels include their own CUDA/cuDNN libraries and older cluster modules can
+conflict through `LD_LIBRARY_PATH`.
 
 ## Citation
 
