@@ -55,7 +55,32 @@ run-from-scratch scripts
 
 ## Environment
 
-We provide a yml file to install all dependencies necessary for running this code. To use this, do the following. 
+We provide an `environment.yml` file to install the dependencies needed for our code. From the repository root, create and activate the environment with
+
+```bash
+conda env create -f environment.yml
+conda activate incontext-asymptotics
+```
+
+If you want you can also use
+
+```bash
+mamba env create -f environment.yml
+conda activate incontext-asymptotics
+```
+
+After activating the environment, double check everything's been imported 
+
+```bash
+python -c "import numpy, scipy, matplotlib, seaborn, tqdm, jax, flax, optax; print('imports ok')"
+```
+
+For GPU runs, which we will use for the the nonlinear Transformer figures, request a GPU node before checking JAX:
+
+```bash
+python -c "import jax; print(jax.devices())"
+```
+The output should include a CUDA device.
 
 ## Citation
 
