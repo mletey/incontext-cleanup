@@ -37,7 +37,7 @@ Studies how performance changes with context length. The figure compares theory 
 
 A numerical plot purely focusing on the theory curves. 
 
-#### Figure 4: Memorization-to-ICL Transition
+#### Figure 4: Memorisation-to-ICL Transition
 
 Shows the transition controlled by pretraining task diversity. _The code here will involve simulating the reduced linear attention model and dMMSE estimator._
 
@@ -51,24 +51,10 @@ Tests whether full nonlinear Transformers maintain both the task diversity scali
 
 ## Repository Organisation
 
-- `theory_runs/`: Reduced linear-attention theory and simulation code. This computes $\Gamma^*$ from sampled data numerically and evaluates the reduced-linear attention MSE loss on these parameters, for both the ICL and IDG distribution. This folder also includes the finite-task Bayes estimator (dMMSE) simulation code used for the task-diversity comparisons.
+- `theory_runs/`: Reduced linear-attention theory and finite simulation code. This computes $\Gamma^*$ from sampled data numerically and evaluates the reduced-linear attention MSE loss on these parameters, for both the ICL and IDG distribution. This folder also includes the finite-task Bayes estimator (dMMSE) simulation code used for the task-diversity comparisons.
 - `transformer_codebase/`: Transformer model, data, and training code.
-- `test_runs/`: small CPU tests runs. These are intentionally low-dimensional
-  (`d=5`) checks over task diversity and are meant to provide an easy proof-of-concept run for the reduced model and the transformers. 
-- `easy_runs/`: existing plotting/aggregation scripts plus prepopulated
-  processed data from our previous runs.
-- `run_from_scratch/`: reserved for full reproduction scripts. 
-
-To run the quick-and-easy tests, use
-
-```bash
-bash test_runs/run_theory_task_diversity_cpu.sh
-bash test_runs/run_transformer_task_diversity_cpu.sh
-bash test_runs/run_all_cpu_smoke_tests.sh
-```
-
-The test scripts write CSV outputs under `test_runs/outputs/`, which is ignored
-by git.
+- `quick_and_easy_figure/`: This is a self-contained directory that includes an instruction `.md` file, data-populating code, and data-plotting code. The output of this is a proof-of-concept figure emmulating Figure 4, i.e. the phase transition of task generalisation in task diversity. This is meant to be runable very easily on CPU. 
+- `run_from_scratch/`: Scripts and all information necessary for rerunning experiments used. This is organised per figure, with instruction `.md` files given in each folder. 
 
 ## Environment
 
