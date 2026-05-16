@@ -63,15 +63,17 @@ def plot(name):
     ])
 
     fig, ax = plt.subplots()
-    ax.plot(gamma_kappa, gamma_mean, marker="o", ms = 10, label=r"Finite data simulation")
+    ax.plot(gamma_kappa, gamma_mean, marker="o", ms = 12, label="Finite data simulation")
     ax.fill_between(
         gamma_kappa,
         gamma_mean - gamma_std,
         gamma_mean + gamma_std,
         alpha=0.2,
     )
-    ax.plot(dmmse_kappa, dmmse_mean, marker="s", ms=10, label="dMMSE")
+    ax.plot(dmmse_kappa, dmmse_mean, marker="s", ms=12, label="dMMSE")
     ax.plot(kappas_theory, theory, linestyle="--", label="Theory curve")
+
+    plt.axvline(1, linestyle=':', linewidth=4, color='red', label=r"$\kappa$ = 1")
     ax.set_xscale("log")
     ax.set_xlabel(r"$\kappa = k/d$")
     ax.set_ylabel(r"$g_{\text{task}}$")

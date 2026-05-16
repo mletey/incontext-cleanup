@@ -15,4 +15,5 @@ This code has $\kappa, \alpha, \tau, \rho, \lambda$ values already fixed. One ca
 The one key parameter for `run.py` is the dimension of the tokens $d$. Depending on how large this is, this code is feasible to run on CPU. 
 - For $d=10$ this took us 00:18min on login node. 
 - For $d=32$ this took us 04:20min on login node. 
-As always, the larger the $d$ the better the concentration and fit to the theory curve. 
+- For $d=64$ this took us 73:13min on login node. 
+As always, the larger the $d$ the better the concentration and fit to the theory curve. These runs could be done much faster by parallelising over the $\kappa$ values while running, but for simplicity of use we have not done this here. 

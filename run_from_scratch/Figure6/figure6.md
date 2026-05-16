@@ -18,4 +18,4 @@ For example, a use of this code that will run fairly quickly (but isn't trained 
 python run_2softmlp_transformer.py --d 10 --K 20 --run_index 0 --alpha 1 --tau 10 --train_iters 100
 ``` 
 
-The default `csv` file containing results is `./saved.csv`; change this to whatever you wish using the `--save_csv_filepath` flag. 
+The default `csv` file containing results is `./saved.csv`; change this to whatever you wish using the `--save_csv_filepath` flag.
