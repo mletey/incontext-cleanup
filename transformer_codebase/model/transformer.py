@@ -15,6 +15,8 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+Modified by Mary Letey. 
 """
 
 # <codecell>
@@ -36,10 +38,7 @@ class TransformerConfig:
     n_heads: int = 1
     n_out: int = 1
     max_len: int = 100
-    pos_emb: bool = True # do we want to be using positional embedding??
-    # softmax_att: bool = True
-    # softmax_val: bool = False
-    # use_mlp_layers: bool = True
+    pos_emb: bool = True 
     n_mlp_layers: int = 1
     return_final_logits_only: bool = True
     pure_linear_self_att: bool = False
@@ -114,9 +113,6 @@ class SingleHeadSelfAttention(nn.Module):
         attn_weights = jax.nn.softmax(attn_weights)
         self.sow('intermediates', 'attention_weights', attn_weights)
 
-        # if self.config.softmax_val:
-            # value = jax.nn.softmax(value)
-
         attn_out = attn_weights @ value
         return attn_out
 
@@ -153,14 +149,6 @@ class AddPositionEmbs(nn.Module):
                                                                 pos_emb_shape,
                                                                 None)
 
-        # if config.posemb_init is None:
-        #     # Use a fixed (non-learned) sinusoidal position embedding.
-        #     pos_embedding = sinusoidal_init(max_len=config.max_len)(None,
-        #                                                             pos_emb_shape,
-        #                                                             None)
-        # else:
-        #     pos_embedding = self.param('pos_embedding', config.posemb_init, pos_emb_shape)
-        
         pe = pos_embedding[:, :length, :]
         return inputs + pe
 
@@ -178,18 +166,18 @@ class TransformerBlock(nn.Module):
 
         assert inputs.ndim == 3
         x = SingleHeadSelfAttention(self.config)(inputs, decoder_mask, idxs=idxs)
-        #x = nn.MultiHeadDotProductAttention(num_heads=self.config.n_heads,qkv_features=self.config.n_hidden)(inputs_q=inputs, inputs_kv=inputs, mask=decoder_mask)        
+        x = nn.MultiHeadDotProductAttention(num_heads=self.config.n_heads,qkv_features=self.config.n_hidden)(inputs_q=inputs, inputs_kv=inputs, mask=decoder_mask)        
         x = x + inputs;
-        # pre_mlp_x = nn.LayerNorm()(x)
+        pre_mlp_x = nn.LayerNorm()(x)
 
-        # for i in range(self.config.n_mlp_layers):
-        #     if i == 0:
-        #         x = nn.Dense(features=self.config.n_hidden)(pre_mlp_x)
-        #     else:
-        #         x = nn.gelu(x)
-        #         x = nn.Dense(features=self.config.n_hidden)(x)
+        for i in range(self.config.n_mlp_layers):
+            if i == 0:
+                x = nn.Dense(features=self.config.n_hidden)(pre_mlp_x)
+            else:
+                x = nn.gelu(x)
+                x = nn.Dense(features=self.config.n_hidden)(x)
         
-        # x = x + pre_mlp_x
+        x = x + pre_mlp_x
         x = nn.LayerNorm()(x)
 
         return x
@@ -210,8 +198,8 @@ class LinearSelfAttentionBlock(nn.Module):
         depth = query.shape[-1]
 
         attn_weights = jnp.einsum('...qd,...kd->...qk', query, key)
-        attn_weights /= jnp.sqrt(depth) #this could be a problem, this will be h not d so perhaps wrong rescaling??
-        
+        attn_weights /= jnp.sqrt(depth) 
+
         attn_out = attn_weights @ value
         return attn_out
     
@@ -279,10 +267,6 @@ class Transformer(nn.Module):
             if config.pos_emb:
                 y = AddPositionEmbs(config=config)(y)
             
-            # decoder_mask = nn.make_attention_mask(inputs > 0, inputs > 0)
-            # decoder_mask = nn.combine_masks(
-            #     decoder_mask,
-            #     nn.make_causal_mask(inputs))
             decoder_mask = nn.make_causal_mask(jnp.zeros(inputs.shape[:2]))
             
             for _ in range(config.n_layers):

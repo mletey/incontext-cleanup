@@ -44,9 +44,7 @@ def create_train_state(rng, model, dummy_input, lr=1e-4, optim=optax.adamw, **op
     else:
         print("create_train_state is not running on a GPU.")
     params = model.init(rng, dummy_input)['params']
-    #print("creattrainstate: model init works")
     tx = optim(learning_rate=lr, **opt_kwargs)
-    #print("creattrainstate: optaxadam works")
 
     return TrainState.create(
         apply_fn=model.apply,
